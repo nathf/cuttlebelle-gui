@@ -6,7 +6,7 @@ import { Provider, Client } from 'urql';
 import './index.css';
 import Cuttlebelle from './components/Cuttlebelle';
 import registerServiceWorker from './registerServiceWorker';
-import GithubTokenContext, { TOKEN_STORAGE_KEY } from './githubTokenContext';
+import CuttlebelleContext from './CuttlebelleContext';
 
 const electron = window.require('electron');
 
@@ -20,18 +20,23 @@ class CuttlebelleApp extends React.Component<CuttlebelleAppProps, CuttlebelleApp
   constructor(props: CuttlebelleAppProps) {
     super(props);
     this.state = {
-      githubAccessToken: window.localStorage.getItem(TOKEN_STORAGE_KEY),
-      projectPath: window.localStorage.getItem('localDir'),
+      githubAccessToken: window.localStorage.getItem('githubAccessToken'),
+      projectPath: window.localStorage.getItem('projectPath'),
     };
   }
 
   componentDidMount() {
-    electron.ipcRenderer.on('github-oauth-reply', (event, session) => {
-      this.setState(() => ({ githubAccessToken: session.access_token }));
+    electron.ipcRenderer.on('github-oauth-reply', (event, context) => {
+      this.setStateAndLocalStorage('githubAccessToken', context.access_token);
     });
-    electron.ipcRenderer.on('selected-local-dir', (event, context) => {
-      this.setState(() => ({ projectPath: context[0] }));
+    electron.ipcRenderer.on('selected-project-path', (event, context) => {
+      this.setStateAndLocalStorage('projectPath', context.projectPath);
     });
+  }
+
+  setStateAndLocalStorage = (key, value) => {
+    window.localStorage.setItem(key, value);
+    this.setState(() => ({ [key]: value }));
   }
 
   urqlClient() {
@@ -47,13 +52,12 @@ class CuttlebelleApp extends React.Component<CuttlebelleAppProps, CuttlebelleApp
   }
 
   render() {
-    const githubToken = this.state.githubAccessToken;
     return (
-      <GithubTokenContext.Provider value={githubToken}>
+      <CuttlebelleContext.Provider value={this.state}>
         <Provider client={this.urqlClient()}>
-          <Cuttlebelle {...this.state} />
+          <Cuttlebelle />
         </Provider>
-      </GithubTokenContext.Provider>
+      </CuttlebelleContext.Provider>
     );
   }
 }

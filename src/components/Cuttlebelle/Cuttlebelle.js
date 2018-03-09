@@ -2,25 +2,25 @@
 import React from 'react';
 import './Cuttlebelle.css';
 
-import GithubTokenContext from '../../githubTokenContext';
-import GithubLogin from '../GithubLogin';
-import AppHome from '../AppHome';
+import CuttlebelleContext from '../../CuttlebelleContext';
+import BeginOptions from '../BeginOptions';
+import GithubHome from '../GithubHome';
 import ProjectViewer from '../ProjectViewer';
 
-type CuttlebelleProps = {
-  projectPath: ?string
-}
+const Cuttlebelle = () => (
+  <CuttlebelleContext.Consumer>
+    {({ githubAccessToken, projectPath }) => {
+      if (projectPath) {
+        return <ProjectViewer projectPath={projectPath} />;
+      }
 
-const Cuttlebelle = ({ projectPath }: CuttlebelleProps) => {
-  if (projectPath) {
-    return <ProjectViewer projectPath={projectPath} />;
-  }
+      if (githubAccessToken) {
+        return <GithubHome />;
+      }
 
-  return (
-    <GithubTokenContext.Consumer>
-      {value => (value ? <AppHome /> : <GithubLogin />)}
-    </GithubTokenContext.Consumer>
-  )
-};
+      return <BeginOptions />;
+    }}
+  </CuttlebelleContext.Consumer>
+);
 
 export default Cuttlebelle;

@@ -1,0 +1,7 @@
+.projectviewer__container {
+  padding: 0 20px;
+}
+
+.projectviewer__actions > button {
+  margin-right: 10px;
+}
